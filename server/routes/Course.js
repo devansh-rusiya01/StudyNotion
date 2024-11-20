@@ -103,3 +103,4 @@ router.get("/getAverageRating", getAverageRating)
 router.get("/getReviews", getAllRatingReview)
 
 module.exports = router
+
