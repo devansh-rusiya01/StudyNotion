@@ -7,6 +7,7 @@ const ratingAndReviewSchema = new mongoose.Schema({
 		required: true,
 		ref: "user",
 	},
+	
 	rating: {
 		type: Number,
 		required: true,
