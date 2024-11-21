@@ -7,7 +7,7 @@ const ratingAndReviewSchema = new mongoose.Schema({
 		required: true,
 		ref: "user",
 	},
-	
+
 	rating: {
 		type: Number,
 		required: true,
@@ -25,4 +25,4 @@ const ratingAndReviewSchema = new mongoose.Schema({
 });
 
 // Export the RatingAndReview model
-module.exports = mongoose.model("RatingAndReview", ratingAndReviewSchema);
+module.exports = mongoose.model("RatingandReview", ratingAndReviewSchema);
