@@ -23,4 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 .env
 env
+package-lock.json
+pnpm-lock.yaml
+
 **/.env
