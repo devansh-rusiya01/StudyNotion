@@ -1,4 +1,4 @@
-const Category = require("../models/Category")
+const Category = require("../models/Category.js")
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max)

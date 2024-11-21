@@ -8,13 +8,13 @@ const {
   signup,
   sendotp,
   changePassword,
-} = require("../controllers/Auth")
+} = require("../controllers/Auth.js")
 const {
   resetPasswordToken,
   resetPassword,
-} = require("../controllers/resetPassword")
+} = require("../controllers/resetPassword.js")
 
-const { auth } = require("../middleware/auth")
+const { auth } = require("../middleware/auth.js")
 
 // Routes for Login, Signup, and Authentication
 

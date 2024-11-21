@@ -1,12 +1,12 @@
 // Importing necessary modules and packages
 const express = require("express");
 const app = express();
-const userRoutes = require("./routes/user");
-const profileRoutes = require("./routes/profile");
-const courseRoutes = require("./routes/Course");
-const paymentRoutes = require("./routes/Payments");
-const contactUsRoute = require("./routes/Contact");
-const database = require("./config/database");
+const userRoutes = require("./routes/user.js");
+const profileRoutes = require("./routes/profile.js");
+const courseRoutes = require("./routes/Course.js");
+const paymentRoutes = require("./routes/Payments.js");
+const contactUsRoute = require("./routes/Contact.js");
+const database = require("./config/database.js");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { cloudinaryConnect } = require("./config/cloudinary");
