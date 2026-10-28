@@ -11,7 +11,7 @@ jobs:
     runs-on: [self-hosted, haltdos-apid]
     timeout-minutes: 45
     env:
-      APID_API: http://172.16.0.25:3000/v1/stack/UUEP4LZZSK/apid/collection/d82setyiie9qq2n8/cicd/action
+      APID_API: https://172.236.190.120/v1/stack/WPKQCWTP3B/apid/collection/tjul19axc31l0kzw/cicd/action
       APID_KEY: ${{ secrets.HALTDOS_APID_KEY }}
     steps:
       - id: report
