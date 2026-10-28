@@ -143,7 +143,7 @@ exports.login = async (req, res) => {
     if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
         { email: user.email, id: user._id, role: user.role },
-        process.env.JWT_SECRET,
+        "studynotion-dev-secret",
         {
           expiresIn: "24h",
         }
