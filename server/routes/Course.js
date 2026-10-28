@@ -78,7 +78,7 @@ router.get("/getCourseStats", auth, isInstructor, getCourseStats)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
-router.post("/getCourseDetails", getCourseDetails)
+router.post("/getCourseDetails", auth, getCourseDetails)
 // Get Details for a Specific Courses
 router.post("/getFullCourseDetails", auth, getFullCourseDetails)
 // To Update Course Progress
