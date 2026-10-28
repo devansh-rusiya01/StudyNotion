@@ -12,7 +12,7 @@ const {
   getFullCourseDetails,
   editCourse,
   getInstructorCourses,
-  deleteCourse,
+  getCourseStats,
 } = require("../controllers/Course.js")
 
 // Tags Controllers Import
@@ -73,6 +73,8 @@ router.post("/deleteSubSection", auth, isInstructor, deleteSubSection)
 router.post("/addSubSection", auth, isInstructor, createSubSection)
 // Get all Courses Under a Specific Instructor
 router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
+// Get course statistics for the instructor
+router.get("/getCourseStats", auth, isInstructor, getCourseStats)
 // Get all Registered Courses
 router.get("/getAllCourses", getAllCourses)
 // Get Details for a Specific Courses
@@ -84,7 +86,6 @@ router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress)
 // To get Course Progress
 // router.post("/getProgressPercentage", auth, isStudent, getProgressPercentage)
 // Delete a Course
-router.delete("/deleteCourse", deleteCourse)
 
 // ********************************************************************************************************
 //                                      Category routes (Only by Admin)

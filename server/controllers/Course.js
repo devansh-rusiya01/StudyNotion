@@ -491,3 +491,13 @@ exports.deleteCourse = async (req, res) => {
     })
   }
 }
+
+// Get course statistics for the logged-in instructor
+exports.getCourseStats = async (req, res) => {
+  try {
+    const totalCourses = await Course.countDocuments({ instructor: req.user.id })
+    return res.status(200).json({ success: true, data: { totalCourses } })
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message })
+  }
+}
