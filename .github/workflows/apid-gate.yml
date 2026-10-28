@@ -1,0 +1,75 @@
+name: APID API Security Gate
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  checks: write
+jobs:
+  apid:
+    runs-on: [self-hosted, haltdos-apid]
+    timeout-minutes: 45
+    env:
+      APID_API: http://172.16.0.25:3000/v1/stack/UUEP4LZZSK/apid/collection/d82setyiie9qq2n8/cicd/action
+      APID_KEY: ${{ secrets.HALTDOS_APID_KEY }}
+    steps:
+      - id: report
+        if: github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          body=$(jq -n --arg key "$APID_KEY" --arg pr "$PR_NUMBER" --arg title "$PR_TITLE" --arg author "$PR_AUTHOR" --arg sourceBranch "$SOURCE_BRANCH" --arg targetBranch "$TARGET_BRANCH" --arg commit "$HEAD_SHA" '{actionKey:$key,pullRequestId:$pr,title:$title,author:$author,sourceBranch:$sourceBranch,targetBranch:$targetBranch,commit:$commit}')
+          response=$(curl -sS -X POST "$APID_API/verdict" -H "Content-Type: application/json" -d "$body")
+          if [ "$(echo "$response" | jq -r '.valid')" != "true" ]; then
+            echo "::error::APID gate rejected the pull request: $(echo "$response" | jq -r '.message')"
+            exit 1
+          fi
+          verdict=$(echo "$response" | jq -r '.data.verdictId')
+          key=$(jq -n --arg key "$APID_KEY" '{actionKey:$key}')
+          status="PENDING"
+          for attempt in $(seq 1 240); do
+            if [ "$status" != "PENDING" ] && [ "$status" != "RUNNING" ]; then break; fi
+            sleep 10
+            response=$(curl -sS -X POST "$APID_API/verdict/$verdict" -H "Content-Type: application/json" -d "$key")
+            status=$(echo "$response" | jq -r '.data.status // "ERROR"')
+          done
+          reasons=$(echo "$response" | jq -r '[.data.reasons[]? | "- **" + .severity + "** " + .title + " — " + .detail] | join("\n")')
+          [ -n "$reasons" ] || reasons="No new risk introduced by this pull request."
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          { echo "summary<<APID_EOF"; echo "$reasons"; echo "APID_EOF"; } >> "$GITHUB_OUTPUT"
+      - id: baseline
+        if: github.event_name == 'push'
+        env:
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          body=$(jq -n --arg key "$APID_KEY" --arg branch "$BRANCH" --arg commit "$COMMIT" '{actionKey:$key,branch:$branch,commit:$commit}')
+          response=$(curl -sS -X POST "$APID_API/baseline" -H "Content-Type: application/json" -d "$body")
+          if [ "$(echo "$response" | jq -r '.valid')" != "true" ]; then
+            echo "::error::APID baseline refresh rejected: $(echo "$response" | jq -r '.message')"
+            exit 1
+          fi
+      - id: check-run
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUS: ${{ steps.report.outputs.status }}
+          SUMMARY: ${{ steps.report.outputs.summary }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          conclusion="neutral"; title="APID gate error"
+          if [ "$STATUS" = "PASS" ]; then conclusion="success"; title="APID gate passed"; fi
+          if [ "$STATUS" = "WOULD_BLOCK" ]; then conclusion="failure"; title="APID gate: would block"; fi
+          if [ "$STATUS" = "NO_BASELINE" ]; then title="APID gate: no baseline yet"; fi
+          if [ "$STATUS" = "PENDING" ] || [ "$STATUS" = "RUNNING" ]; then title="APID gate: scan timed out"; fi
+          body=$(jq -n --arg name "APID API Security Gate" --arg sha "$HEAD_SHA" --arg conclusion "$conclusion" --arg title "$title" --arg summary "$SUMMARY" '{name:$name,head_sha:$sha,status:"completed",conclusion:$conclusion,output:{title:$title,summary:$summary}}')
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "${{ github.api_url }}/repos/${{ github.repository }}/check-runs" -d "$body" > /dev/null
