@@ -203,6 +203,7 @@ exports.editCourse = async (req, res) => {
 // Get Course List
 exports.getAllCourses = async (req, res) => {
   try {
+    const { page = 1, limit = 20 } = req.query
     const allCourses = await Course.find(
       { status: "Published" },
       {
@@ -215,6 +216,8 @@ exports.getAllCourses = async (req, res) => {
       }
     )
       .populate("instructor")
+      .skip((page - 1) * limit)
+      .limit(limit)
       .exec()
 
     return res.status(200).json({

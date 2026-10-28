@@ -20,7 +20,8 @@ exports.signup = async (req, res) => {
       password,
       confirmPassword,
       accountType,
-      contactNumber,
+      phoneNumber,
+      referralCode,
       otp,
     } = req.body
     // Check if All Details are there or not
@@ -90,7 +91,7 @@ exports.signup = async (req, res) => {
       firstName,
       lastName,
       email,
-      contactNumber,
+      contactNumber: phoneNumber,
       password: hashedPassword,
       accountType: accountType,
       approved: approved,
@@ -101,6 +102,7 @@ exports.signup = async (req, res) => {
     return res.status(200).json({
       success: true,
       user,
+      referralCode,
       message: "User registered successfully",
     })
   } catch (error) {
