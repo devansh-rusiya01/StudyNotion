@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           body=$(jq -n --arg key "$APID_KEY" --arg pr "$PR_NUMBER" --arg title "$PR_TITLE" --arg author "$PR_AUTHOR" --arg sourceBranch "$SOURCE_BRANCH" --arg targetBranch "$TARGET_BRANCH" --arg commit "$HEAD_SHA" '{actionKey:$key,pullRequestId:$pr,title:$title,author:$author,sourceBranch:$sourceBranch,targetBranch:$targetBranch,commit:$commit}')
-          response=$(curl -sS -X POST "$APID_API/verdict" -H "Content-Type: application/json" -d "$body")
+          response=$(curl -sSk -X POST "$APID_API/verdict" -H "Content-Type: application/json" -d "$body")
           if [ "$(echo "$response" | jq -r '.valid')" != "true" ]; then
             echo "::error::APID gate rejected the pull request: $(echo "$response" | jq -r '.message')"
             exit 1
@@ -37,7 +37,7 @@ jobs:
           for attempt in $(seq 1 240); do
             if [ "$status" != "PENDING" ] && [ "$status" != "RUNNING" ]; then break; fi
             sleep 10
-            response=$(curl -sS -X POST "$APID_API/verdict/$verdict" -H "Content-Type: application/json" -d "$key")
+            response=$(curl -sSk -X POST "$APID_API/verdict/$verdict" -H "Content-Type: application/json" -d "$key")
             status=$(echo "$response" | jq -r '.data.status // "ERROR"')
           done
           reasons=$(echo "$response" | jq -r '[.data.reasons[]? | "- **" + .severity + "** " + .title + " — " + .detail] | join("\n")')
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           body=$(jq -n --arg key "$APID_KEY" --arg branch "$BRANCH" --arg commit "$COMMIT" '{actionKey:$key,branch:$branch,commit:$commit}')
-          response=$(curl -sS -X POST "$APID_API/baseline" -H "Content-Type: application/json" -d "$body")
+          response=$(curl -sSk -X POST "$APID_API/baseline" -H "Content-Type: application/json" -d "$body")
           if [ "$(echo "$response" | jq -r '.valid')" != "true" ]; then
             echo "::error::APID baseline refresh rejected: $(echo "$response" | jq -r '.message')"
             exit 1
